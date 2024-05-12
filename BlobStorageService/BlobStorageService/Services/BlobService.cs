@@ -9,13 +9,6 @@ namespace BlobStorageService.Services
     public class BlobService : IBlobService
     {
         private readonly string storageConnectionString = Environment.GetEnvironmentVariable("BLOB_STORAGE_CONNECTION_STRING");
-        //private readonly string storageConnectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
-        //private readonly string storageConnectionString;
-
-        //public BlobService(IConfiguration configuration)
-        //{
-        //    storageConnectionString = configuration.GetConnectionString("AZURE_STORAGE_CONNECTION_STRING");
-        //}
 
         public string GenerateBlobReadSasUri(string containerName, string blobName)
         {
