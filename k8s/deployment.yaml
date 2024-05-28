@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blobstorageservice-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: blobstorageservice-backend
+  template:
+    metadata:
+      labels:
+        app: blobstorageservice-backend
+    spec:
+      containers:
+        - name: blobstorageservice-backend
+          image: rikhendrix/blobstorageservice-backend:latest
+          ports:
+            - containerPort: 80
