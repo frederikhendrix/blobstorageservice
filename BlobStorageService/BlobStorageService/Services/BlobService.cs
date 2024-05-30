@@ -42,5 +42,38 @@ namespace BlobStorageService.Services
             string result = $"{blobClient.Uri}?{sasToken}";
             return result;
         }
+
+        /**
+         
+        returns unique blob name if needed. 
+         */
+        public async Task<string> UploadBlobAsync(string containerName, string blobName, Stream content)
+        {
+            var blobServiceClient = new BlobServiceClient(storageConnectionString);
+            var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            var blobClient = blobContainerClient.GetBlobClient(blobName);
+
+            var uniqueBlobName = blobName;
+
+            // Check if the blob already exists
+            if (await blobClient.ExistsAsync())
+            {
+                // Generate a new unique blob name
+                uniqueBlobName = $"{Path.GetFileNameWithoutExtension(blobName)}_{Guid.NewGuid()}{Path.GetExtension(blobName)}";
+                blobClient = blobContainerClient.GetBlobClient(uniqueBlobName);
+            }
+
+            await blobClient.UploadAsync(content, true);
+            return uniqueBlobName;
+        }
+
+        public async Task DeleteBlobAsync(string containerName, string blobName)
+        {
+            var blobServiceClient = new BlobServiceClient(storageConnectionString);
+            var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            var blobClient = blobContainerClient.GetBlobClient(blobName);
+
+            await blobClient.DeleteIfExistsAsync();
+        }
     }
 }
