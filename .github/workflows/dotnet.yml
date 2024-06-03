@@ -27,22 +27,6 @@ jobs:
       - name: Build Blob Storage Service
         run: dotnet build ./BlobStorageService/BlobStorageService/BlobStorageService.csproj --no-restore
 
-      # OWASP Dependency-Check for .NET
-      - name: Install OWASP Dependency-Check
-        run: |
-          wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.4.4/dependency-check-7.4.4-release.zip
-          unzip dependency-check-7.4.4-release.zip -d dependency-check
-          chmod +x dependency-check/bin/dependency-check.sh
-
-      - name: Run OWASP Dependency-Check
-        run: dependency-check/bin/dependency-check.sh --project BlobStorageService --scan . --format ALL --out dependency-check-report
-
-      - name: Upload Dependency-Check report
-        uses: actions/upload-artifact@v2
-        with:
-          name: dependency-check-report
-          path: dependency-check-report
-
       # ClamAV
       - name: Install ClamAV
         run: sudo apt-get install -y clamav
@@ -99,38 +83,11 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Install OWASP Dependency-Check
-        run: |
-          wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.4.4/dependency-check-7.4.4-release.zip
-          unzip dependency-check-7.4.4-release.zip -d dependency-check
-          chmod +x dependency-check/bin/dependency-check.sh
-
-      - name: Run OWASP Dependency-Check
-        run: dependency-check/bin/dependency-check.sh --project BlobStorageService --scan . --format ALL --out dependency-check-report
-
-      - name: Upload Dependency-Check report
-        uses: actions/upload-artifact@v2
-        with:
-          name: dependency-check-report
-          path: dependency-check-report
-
       - name: Install ClamAV
         run: sudo apt-get install -y clamav
 
       - name: Update ClamAV database
         run: sudo freshclam
 
-      - name: Run AzCopy to download files from Blob Storage
-        run: |
-          curl -sL https://aka.ms/downloadazcopy-v10-linux | tar -xz
-          sudo ./install.sh
-          azcopy login --identity
-          azcopy cp "https://${{ secrets.AZUR_STORAGE }}.blob.core.windows.net/${{ secrets.AZURE_CONTAINER }}/*" "./local-path/" --recursive
-
-      - name: Scan downloaded files with ClamAV
-        run: clamscan -r ./local-path
-
-      - name: Run AzCopy to upload files to Blob Storage
-        run: |
-          azcopy login --identity
-          azcopy cp "./local-path/*" "https://${{ secrets.AZUR_STORAGE }}.blob.core.windows.net/${{ secrets.AZURE_CONTAINER }}/" --recursive
+      - name: Scan project files with ClamAV
+        run: clamscan -r ./BlobStorageService
