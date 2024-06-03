@@ -27,11 +27,11 @@ jobs:
       - name: Build Blob Storage Service
         run: dotnet build ./BlobStorageService/BlobStorageService/BlobStorageService.csproj --no-restore
 
-      # OWASP Dependency-Check
+      # OWASP Dependency-Check for .NET
       - name: Install OWASP Dependency-Check
         run: |
-          wget https://github.com/jeremylong/DependencyCheck/releases/download/v6.2.2/dependency-check-6.2.2-release.zip
-          unzip dependency-check-6.2.2-release.zip -d dependency-check
+          wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.4.4/dependency-check-7.4.4-release.zip
+          unzip dependency-check-7.4.4-release.zip -d dependency-check
           chmod +x dependency-check/bin/dependency-check.sh
 
       - name: Run OWASP Dependency-Check
@@ -101,8 +101,8 @@ jobs:
 
       - name: Install OWASP Dependency-Check
         run: |
-          wget https://github.com/jeremylong/DependencyCheck/releases/download/v6.2.2/dependency-check-6.2.2-release.zip
-          unzip dependency-check-6.2.2-release.zip -d dependency-check
+          wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.4.4/dependency-check-7.4.4-release.zip
+          unzip dependency-check-7.4.4-release.zip -d dependency-check
           chmod +x dependency-check/bin/dependency-check.sh
 
       - name: Run OWASP Dependency-Check
@@ -125,7 +125,7 @@ jobs:
           curl -sL https://aka.ms/downloadazcopy-v10-linux | tar -xz
           sudo ./install.sh
           azcopy login --identity
-          azcopy cp "./local-path/*" "https://${{ secrets.AZUR_STORAGE }}.blob.core.windows.net/${{ secrets.AZURE_CONTAINER }}/" --recursive
+          azcopy cp "https://${{ secrets.AZUR_STORAGE }}.blob.core.windows.net/${{ secrets.AZURE_CONTAINER }}/*" "./local-path/" --recursive
 
       - name: Scan downloaded files with ClamAV
         run: clamscan -r ./local-path
