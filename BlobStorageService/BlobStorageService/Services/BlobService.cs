@@ -24,6 +24,10 @@ namespace BlobStorageService.Services
             _logger = logger;
             _storageConnectionString = configuration["BlobStorage:ConnectionString"];
             _virusTotalApiKey = configuration["BlobStorage:VirusTotalApiKey"];
+
+            // Debugging logs
+            Console.WriteLine($"BlobStorage ConnectionString: {_storageConnectionString}");
+            Console.WriteLine($"VirusTotal ApiKey: {_virusTotalApiKey}");
         }
 
         public string GenerateBlobReadSasUri(string containerName, string blobName)
