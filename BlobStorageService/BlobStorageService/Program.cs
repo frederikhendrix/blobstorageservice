@@ -3,6 +3,12 @@ using BlobStorageService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var blobStorageConnectionString = Environment.GetEnvironmentVariable("BLOB_STORAGE_CONNECTION_STRING")?.Trim('"');
+var virusTotalApiKey = Environment.GetEnvironmentVariable("VIRUSTOTAL_API_KEY")?.Trim('"');
+
+builder.Configuration["BlobStorage:ConnectionString"] = blobStorageConnectionString;
+builder.Configuration["BlobStorage:VirusTotalApiKey"] = virusTotalApiKey;
+
 // Add services to the container.
 builder.Services.AddScoped<IBlobService, BlobService>();
 

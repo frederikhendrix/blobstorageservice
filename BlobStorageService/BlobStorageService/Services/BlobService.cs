@@ -15,20 +15,22 @@ namespace BlobStorageService.Services
 {
     public class BlobService : IBlobService
     {
-        private readonly string storageConnectionString = Environment.GetEnvironmentVariable("BLOB_STORAGE_CONNECTION_STRING");
-        private readonly string virusTotalApiKey = Environment.GetEnvironmentVariable("VIRUSTOTAL_API_KEY");
+        private readonly string _storageConnectionString;
+        private readonly string _virusTotalApiKey;
         private readonly ILogger<BlobService> _logger;
 
-        public BlobService(ILogger<BlobService> logger)
+        public BlobService(ILogger<BlobService> logger, IConfiguration configuration)
         {
             _logger = logger;
+            _storageConnectionString = configuration["BlobStorage:ConnectionString"];
+            _virusTotalApiKey = configuration["BlobStorage:VirusTotalApiKey"];
         }
 
         public string GenerateBlobReadSasUri(string containerName, string blobName)
         {
             // Parse the connection string
-            var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
-            var blobServiceClient = new BlobServiceClient(storageConnectionString);
+            var storageAccount = CloudStorageAccount.Parse(_storageConnectionString);
+            var blobServiceClient = new BlobServiceClient(_storageConnectionString);
             var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
             var blobClient = blobContainerClient.GetBlobClient(blobName);
 
@@ -73,7 +75,7 @@ namespace BlobStorageService.Services
                 throw new Exception("File is infected with a virus.");
             }
 
-            var blobServiceClient = new BlobServiceClient(storageConnectionString);
+            var blobServiceClient = new BlobServiceClient(_storageConnectionString);
             var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
             var blobClient = blobContainerClient.GetBlobClient(blobName);
 
@@ -99,7 +101,7 @@ namespace BlobStorageService.Services
 
         public async Task DeleteBlobAsync(string containerName, string blobName)
         {
-            var blobServiceClient = new BlobServiceClient(storageConnectionString);
+            var blobServiceClient = new BlobServiceClient(_storageConnectionString);
             var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
             var blobClient = blobContainerClient.GetBlobClient(blobName);
 
@@ -108,7 +110,7 @@ namespace BlobStorageService.Services
 
         private async Task<bool> ScanFileWithVirusTotal(string filePath, string fileName)
         {
-            var apiKey = virusTotalApiKey;
+            var apiKey =  _virusTotalApiKey;
             if (string.IsNullOrEmpty(apiKey))
             {
                 _logger.LogError("VirusTotal API key is missing.");
