@@ -70,11 +70,15 @@ jobs:
       - name: Set AKS context
         run: az aks get-credentials --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} --name ${{ secrets.AKS_CLUSTER_NAME }}
 
-      - name: Create blob storage secret
-        run: kubectl create secret generic blob-storage-secret --from-literal=connection-string=${{ secrets.BLOB_STORAGE_CONNECTION_STRING }}
+      - name: Create or update blob storage secret
+        run: |
+          kubectl delete secret blob-storage-secret || true
+          kubectl create secret generic blob-storage-secret --from-literal=connection-string=${{ secrets.BLOB_STORAGE_CONNECTION_STRING }}
 
-      - name: Create VirusTotal API key secret
-        run: kubectl create secret generic virus-total-secret --from-literal=api-key=${{ secrets.VIRUSTOTAL_API_KEY }}
+      - name: Create or update VirusTotal API key secret
+        run: |
+          kubectl delete secret virus-total-secret || true
+          kubectl create secret generic virus-total-secret --from-literal=api-key=${{ secrets.VIRUSTOTAL_API_KEY }}
 
       - name: Deploy to AKS
         run: |
