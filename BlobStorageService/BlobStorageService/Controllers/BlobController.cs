@@ -1,5 +1,8 @@
 ﻿using BlobStorageService.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace BlobStorageService.Controllers
 {
@@ -8,10 +11,12 @@ namespace BlobStorageService.Controllers
     public class BlobController : ControllerBase
     {
         private readonly IBlobService _blobService;
+        private readonly ILogger<BlobController> _logger;
 
-        public BlobController(IBlobService blobService)
+        public BlobController(IBlobService blobService, ILogger<BlobController> logger)
         {
             _blobService = blobService;
+            _logger = logger;
         }
 
         [HttpGet("{name}")]
@@ -36,8 +41,16 @@ namespace BlobStorageService.Controllers
             var blobName = file.FileName;
             using (var stream = file.OpenReadStream())
             {
-                var blobUniqueName = await _blobService.UploadBlobAsync("flixblobstorage1", blobName, stream);
-                return Ok(new { BlobName = blobUniqueName });
+                try
+                {
+                    var blobUniqueName = await _blobService.UploadBlobAsync("flixblobstorage1", blobName, stream);
+                    return Ok(new { BlobName = blobUniqueName });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error uploading file");
+                    return StatusCode(500, "Internal server error");
+                }
             }
         }
 
@@ -47,11 +60,11 @@ namespace BlobStorageService.Controllers
             await _blobService.DeleteBlobAsync(request.ContainerName, request.BlobName);
             return NoContent();
         }
+
         public class DeleteBlobRequest
         {
             public string ContainerName { get; set; }
             public string BlobName { get; set; }
         }
-
     }
 }

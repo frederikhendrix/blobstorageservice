@@ -8,6 +8,7 @@ builder.Services.AddScoped<IBlobService, BlobService>();
 
 
 builder.Services.AddControllers();
+builder.Services.AddLogging();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

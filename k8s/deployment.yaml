@@ -17,3 +17,14 @@ spec:
           image: rikhendrix/blobstorageservice-backend:latest
           ports:
             - containerPort: 80
+          env:
+            - name: BLOB_STORAGE_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: blob-storage-secret
+                  key: connection-string
+            - name: VIRUSTOTAL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: virus-total-secret
+                  key: api-key

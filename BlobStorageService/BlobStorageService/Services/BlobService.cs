@@ -3,12 +3,26 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using BlobStorageService.Interfaces;
 using Microsoft.WindowsAzure.Storage;
+using VirusTotalNet;
+using VirusTotalNet.ResponseCodes;
+using VirusTotalNet.Results;
+using Microsoft.Extensions.Logging;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace BlobStorageService.Services
 {
     public class BlobService : IBlobService
     {
         private readonly string storageConnectionString = Environment.GetEnvironmentVariable("BLOB_STORAGE_CONNECTION_STRING");
+        private readonly string virusTotalApiKey = Environment.GetEnvironmentVariable("VIRUSTOTAL_API_KEY");
+        private readonly ILogger<BlobService> _logger;
+
+        public BlobService(ILogger<BlobService> logger)
+        {
+            _logger = logger;
+        }
 
         public string GenerateBlobReadSasUri(string containerName, string blobName)
         {
@@ -43,12 +57,22 @@ namespace BlobStorageService.Services
             return result;
         }
 
-        /**
-         
-        returns unique blob name if needed. 
-         */
         public async Task<string> UploadBlobAsync(string containerName, string blobName, Stream content)
         {
+            // Save the file to a temporary location
+            var tempFilePath = Path.GetTempFileName();
+            using (var fileStream = File.Create(tempFilePath))
+            {
+                await content.CopyToAsync(fileStream);
+            }
+
+            // Scan the file with VirusTotal
+            if (!await ScanFileWithVirusTotal(tempFilePath, blobName))
+            {
+                File.Delete(tempFilePath);
+                throw new Exception("File is infected with a virus.");
+            }
+
             var blobServiceClient = new BlobServiceClient(storageConnectionString);
             var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
             var blobClient = blobContainerClient.GetBlobClient(blobName);
@@ -63,7 +87,13 @@ namespace BlobStorageService.Services
                 blobClient = blobContainerClient.GetBlobClient(uniqueBlobName);
             }
 
-            await blobClient.UploadAsync(content, true);
+            using (var fileStream = File.OpenRead(tempFilePath))
+            {
+                await blobClient.UploadAsync(fileStream, true);
+            }
+
+            File.Delete(tempFilePath);
+
             return uniqueBlobName;
         }
 
@@ -74,6 +104,45 @@ namespace BlobStorageService.Services
             var blobClient = blobContainerClient.GetBlobClient(blobName);
 
             await blobClient.DeleteIfExistsAsync();
+        }
+
+        private async Task<bool> ScanFileWithVirusTotal(string filePath, string fileName)
+        {
+            var apiKey = virusTotalApiKey;
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                _logger.LogError("VirusTotal API key is missing.");
+                return false;
+            }
+
+            var virusTotal = new VirusTotalNet.VirusTotal(apiKey);
+            virusTotal.UseTLS = true;
+
+            byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+
+            // Check if the file has already been scanned
+            FileReport fileReport = await virusTotal.GetFileReportAsync(fileBytes);
+            if (fileReport.ResponseCode == FileReportResponseCode.Present)
+            {
+                // File has already been scanned, check the result
+                return fileReport.Positives == 0;
+            }
+            else
+            {
+                // File has not been scanned, upload and scan
+                ScanResult scanResult = await virusTotal.ScanFileAsync(fileBytes, fileName);
+
+                // Poll the report
+                while (true)
+                {
+                    fileReport = await virusTotal.GetFileReportAsync(scanResult.Resource);
+                    if (fileReport.ResponseCode == FileReportResponseCode.Present)
+                    {
+                        return fileReport.Positives == 0;
+                    }
+                    await Task.Delay(10000); // Wait for 10 seconds before polling again
+                }
+            }
         }
     }
 }
