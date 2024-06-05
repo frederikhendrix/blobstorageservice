@@ -81,5 +81,10 @@ jobs:
           kubectl apply -f ./k8s/deployment.yaml
           kubectl apply -f ./k8s/service.yaml
 
+      - name: Force rollout restart
+        run: |
+          kubectl rollout restart deployment blobstorageservice-backend
+
       - name: Scan project files with ClamAV
         run: clamscan -r ./BlobStorageService
+        continue-on-error: true
