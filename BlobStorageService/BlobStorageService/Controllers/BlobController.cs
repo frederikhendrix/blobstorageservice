@@ -26,7 +26,7 @@ namespace BlobStorageService.Controllers
             var blobReadUrl = _blobService.GenerateBlobReadSasUri("flixblobstorage1", name);
 
             // Return the video metadata with the SAS token-enabled URL
-            return Ok(new { VideoUrl = blobReadUrl });
+            return Ok(new { VideoUrl = blobReadUrl }); 
         }
 
         [HttpPost("upload")]
