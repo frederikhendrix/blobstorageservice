@@ -11,7 +11,7 @@ builder.Configuration["BlobStorage:VirusTotalApiKey"] = virusTotalApiKey;
 
 // Add services to the container.
 builder.Services.AddScoped<IBlobService, BlobService>();
-
+ 
 
 builder.Services.AddControllers();
 builder.Services.AddLogging();
