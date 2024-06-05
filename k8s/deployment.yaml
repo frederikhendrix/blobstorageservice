@@ -16,7 +16,7 @@ spec:
         - name: blobstorageservice-backend
           image: rikhendrix/blobstorageservice-backend:latest
           ports:
-            - containerPort: 80
+            - containerPort: 5099
           env:
             - name: BLOB_STORAGE_CONNECTION_STRING
               valueFrom:
