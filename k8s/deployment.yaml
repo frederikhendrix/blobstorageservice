@@ -28,3 +28,10 @@ spec:
                 secretKeyRef:
                   name: virus-total-secret
                   key: api-key
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "64Mi"
+            limits:
+              cpu: "50m"
+              memory: "128Mi"
