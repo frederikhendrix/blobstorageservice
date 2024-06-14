@@ -31,13 +31,22 @@ jobs:
       - name: Install ClamAV
         run: sudo apt-get install -y clamav
 
+      - name: Stop ClamAV services
+        run: |
+          sudo systemctl stop clamav-freshclam
+          sudo pkill -f freshclam
+
+      - name: Remove Freshclam Lock File
+        run: sudo rm /var/log/clamav/freshclam.log
+
       - name: Update ClamAV database
         run: sudo freshclam
-        continue-on-error: true
+
+      - name: Add EICAR test file
+        run: echo "X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*" > ./BlobStorageService/eicar.com
 
       - name: Scan project files with ClamAV
         run: clamscan -r ./BlobStorageService
-        continue-on-error: true
 
       # Steps for building and pushing Docker images
       - name: Set up Docker Buildx
@@ -89,7 +98,3 @@ jobs:
       - name: Force rollout restart
         run: |
           kubectl rollout restart deployment blobstorageservice-backend
-
-      - name: Scan project files with ClamAV
-        run: clamscan -r ./BlobStorageService
-        continue-on-error: true
