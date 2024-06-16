@@ -32,6 +32,8 @@ namespace BlobStorageService.Services
 
         public string GenerateBlobReadSasUri(string containerName, string blobName)
         {
+            Console.WriteLine("BlobName: " + blobName);
+            Console.WriteLine("Container: " + containerName);
             // Parse the connection string
             var storageAccount = CloudStorageAccount.Parse(_storageConnectionString);
             var blobServiceClient = new BlobServiceClient(_storageConnectionString);
