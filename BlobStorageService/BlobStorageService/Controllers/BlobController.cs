@@ -30,9 +30,6 @@ namespace BlobStorageService.Controllers
             // Generate SAS token for video blob
             var blobReadUrl = _blobService.GenerateBlobReadSasUri("flixblobstorage1", name);
             var encryptedUrl = Encrypt(blobReadUrl);
-            Console.WriteLine("NAME OF FILE IS: " + name);
-            //.WriteLine("DECRYPTED NAME OF FILE IS: " + decryptedName);
-            Console.WriteLine("Blobreadurl: " + blobReadUrl);
             // Return the video metadata with the SAS token-enabled URL.
             return Ok(new { VideoUrl = blobReadUrl }); 
         }
